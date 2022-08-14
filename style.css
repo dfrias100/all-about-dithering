@@ -1,13 +1,16 @@
 #uploaded_image {
-    height: 50%;
+    max-height: 75vh;
+    max-width: 100%;
     width: auto;
 }
 
 #dithered_image {
-    height: 50%;
+    max-height: 75vh;
+    max-width: 100%;
     width: auto;
 }
 
 .img_container {
-    height: 75vh;
+    height: auto;
+    max-height: 150vh;
 }

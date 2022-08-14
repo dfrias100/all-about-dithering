@@ -1,5 +1,4 @@
 export function dither(event) {
-
     var input_canvas = event.target.myParam;
     var input_context = input_canvas.getContext("2d");
     var input_data = input_context.getImageData(0, 0, input_canvas.width, input_canvas.height);
