@@ -1,0 +1,13 @@
+#uploaded_image {
+    height: 50%;
+    width: auto;
+}
+
+#dithered_image {
+    height: 50%;
+    width: auto;
+}
+
+.img_container {
+    height: 75vh;
+}
