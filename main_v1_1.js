@@ -1,4 +1,4 @@
-import { dither, clamp } from "./dither.js";
+import { dither, clamp } from "./dither_starter.js";
 
 let input_file = document.getElementById("formFile");
 input_file.addEventListener("change", load_image, false);
