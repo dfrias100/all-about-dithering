@@ -23,7 +23,7 @@ function make_gray_scale(image_data_object, width, height) {
     return image_data_object;
 }
 
-function clamp(value, min, max) {
+export function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 

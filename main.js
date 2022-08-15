@@ -1,4 +1,4 @@
-import { dither } from "./dither.js";
+import { dither, clamp } from "./dither.js";
 
 let input_file = document.getElementById("image_file");
 input_file.addEventListener("change", load_image, false);
@@ -6,26 +6,23 @@ input_file.addEventListener("change", load_image, false);
 let input_shades = document.getElementById("num_shades");
 input_shades.addEventListener("change", number_change, false);
 
-let input_grayscale = document.getElementById("grayscale_check");
-input_grayscale.addEventListener("change", checkbox_change, false);
-
 var user_image;
 var image_canvas = document.getElementById("dithered_image");
 var dither_button = document.getElementById("dither_button");
 dither_button.myParam = { canvas: null, grayscale: false, num_shades: 2 };
 
 function number_change(event) {
-    dither_button.myParam.num_shades = event.target.value;
-}
-
-function checkbox_change(event) {
-    dither_button.myParam.grayscale = event.target.checked;
+    event.target.value = clamp(event.target.value, 2, 256);
 }
 
 function before_dither(event) {
     image_canvas.getContext("2d").clearRect(0, 0, image_canvas.width, image_canvas.height);
     image_canvas.getContext("2d").drawImage(user_image, 0, 0);
+
     dither_button.myParam.canvas = image_canvas;
+    dither_button.myParam.grayscale = document.getElementById("grayscale_check").checked;
+    dither_button.myParam.num_shades = clamp(document.getElementById("num_shades").value, 2, 256);
+
     dither(event);
 }
 
