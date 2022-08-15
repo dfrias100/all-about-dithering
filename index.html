@@ -1,36 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Floyd-Steinberg Dithering</title>
+        <title>All About Dithering</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">    
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">    
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Albert+Sans&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="style_bs.css">
         <script type="module" src="dither.js"></script>
         <script type="module" src="main.js"></script>
-        <link rel="stylesheet" href="style.css">
     </head>
-
     <body>
-        <label for="image_file">Submit an image (PNG, JPG, TIFF, or BMP)</label>
-        <input type="file" id="image_file" accept="image/png, image/jpeg, image/bmp, image/tiff">
-        
-        </br>
-        
-        <label for="num_shades">Number of shades</label>
-        <input type="number" id="num_shades" min="2" max="256" value="2">
-        
-        </br>
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary bg-gradient navbar-fixed-top">
+            <div class="container-fluid">
+                <div class="navbar-brand" href="#">All About Dithering</div>
+                <div class="collapse navbar-collapse" id="portfolio-nav">
+                    <ul class="navbar-nav ms-auto my-2 my-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="">Privacy Statement</a>
+                        </li>
+                        <li class="nav-item"> 
+                            <a class="nav-link" href="https://github.com/dfrias100/dithering-web-app"><i class="bi bi-github"></i> Source Code</a>
+                        </li>
+                    </ul>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portfolio-nav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+            </div>
+        </nav>
 
-        <label for="grayscale_check">Make grayscale?</label>
-        <input type="checkbox" id="grayscale_check">
+        <div class="container mt-4 col-md-12">
+            <div class="card">
+                <div class = "card-header">
+                    <h1 style="font-size:1.5em;">Dithering Options</h1>
+                </div>
 
-        </br> </br>
-        <button type="button" id="dither_button"">Dither</button>
-        </br>
-        <div class="img_container">
-            <img id="uploaded_image" src="">
-            </br>   
-            <canvas id="dithered_image"></canvas>
+                <div class = "card-body">
+                    <div class="mb-3">
+                        <label for="algorithm-dropdown" class="form-label">Dithering algorithm to use</label>
+                        <select class="form-select" id="algorithm-dropdown">
+                            <option selected>Select...</option>
+                            <option value="1">Floyd-Steinberg</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Submit an image (.png, .jpg, .tiff, or .bmp)</label>
+                        <input class="form-control" type="file" id="formFile" accept="image/png, image/jpeg, image/bmp, image/tiff">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dither-level-range" class="form-label">Dithering Level: </label>
+                        <label id="current-level"> 2 </label>
+                        <input type="range" class="form-range" min="2" max="256" value="2" id="dither-level-range">
+                    </div>
+
+                    <div class="mb-3">
+                        <input class="form-check-input" type="checkbox" value="" id="grayscale-check">
+                        <label class="form-check-label" for="grayscale-check">
+                            Make grayscale
+                        </label>
+                    </div>
+
+                    <div class="mb-3"></div>
+                        <button type="button" id="dither-button" class="btn btn-primary">Dither</button>
+                    </div>
+
+                    <div class="mb-3 ms-3 me-3">
+                        <div class="progress" id="progress-div" style="height: 0px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="dither-progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div class="container mt-4 mb-4 col-md-12">
+            <div class="card">
+                <div class = "card-header">
+                    <h1 style="font-size:1.5em;">Output</h1>
+                </div>
+
+                <div class = "card-body mt-2 mb-2">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="original-tab" data-bs-toggle="tab" data-bs-target="#original" type="button" role="tab">Original</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="quantized-tab" data-bs-toggle="tab" data-bs-target="#quantized-no-dithering" type="button" role="tab">Quantized, No Dithering</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="dithered-tab" data-bs-toggle="tab" data-bs-target="#dithered" type="button" role="tab">Dithered</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="original" role="tabpanel">
+                            <p class="no-picture-text">No picture uploaded yet.</p>
+                            <img class="mt-4 image-panels" id="uploaded-image" src="">
+                        </div>
+                        <div class="tab-pane fade" id="quantized-no-dithering" role="tabpanel">
+                            <p class="no-picture-text">No picture uploaded yet.</p>
+                            <p class="dither-not-started-text" style="display: none;">Click "Dither" to view this panel.</p>
+                            <canvas class="" class="mt-4" id="quantise-image" style="display: none;"></canvas>
+                            <img class="mt-4 image-panels" id="final-downloadable-image-quantize" src=""></img>
+                        </div>
+                        <div class="tab-pane fade" id="dithered" role="tabpanel">
+                            <p class="no-picture-text">No picture uploaded yet.</p>    
+                            <p class="dither-not-started-text" style="display: none;">Click "Dither" to view this panel.</p>
+                            <canvas class="mt-4 image-panels" id="dithered-image" style="display: none;"></canvas>
+                            <img class="mt-4 image-panels" id="final-downloadable-image-dithered" src=""></img>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
     </body>
 </html>

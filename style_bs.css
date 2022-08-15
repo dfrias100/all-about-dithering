@@ -1,3 +1,35 @@
 :root {
     --bs-body-font-family: 'Albert Sans', sans-serif;
 }
+
+.progress {
+    -moz-transition: height 0.5s ease;
+    -webkit-transition: height 0.5s ease;
+    -o-transition: height 0.5s ease;
+    transition: height 0.5s ease;
+}
+
+.no-picture-text, .dither-not-started-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+p {
+    padding: 10% 0;
+}
+
+.image-panels {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 auto;
+
+    max-width: 100%;
+}
+
+.tab-pane {
+    min-height: 15vh;
+    text-align: center;
+}
