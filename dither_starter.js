@@ -1,40 +1,63 @@
 export function dither(event) {
     const worker = new Worker("dither_worker.js");
 
-    var input_canvas = event.target.myParam.canvas;
+    var input_canvas_dithered = event.target.myParam.canvas_dithered;
+    var input_canvas_quantized = event.target.myParam.canvas_quantized;
+
     var parameters = event.target.myParam;
-    var input_context = input_canvas.getContext("2d");
-    var input_data = input_context.getImageData(0, 0, input_canvas.width, input_canvas.height);
+
+    var input_context_dithered = input_canvas_dithered.getContext("2d");
+    var input_data_dithered = input_context_dithered.getImageData(0, 0, input_canvas_dithered.width, input_canvas_dithered.height);
+
+    var input_context_quantized = input_canvas_quantized.getContext("2d");
+    var input_data_quantized = input_context_quantized.getImageData(0, 0, input_canvas_quantized.width, input_canvas_quantized.height);
+
+    var algorithm_index = parameters.algorithm;
 
     var initial_message = [
-        input_data,
-        [parameters.num_shades, parameters.grayscale],
-        input_canvas.width,
-        input_canvas.height,
+        input_data_dithered,
+        input_data_quantized,
+        [parameters.num_shades, parameters.grayscale, parameters.noise_level, parameters.bayer_size],
+        input_canvas_dithered.width,
+        input_canvas_dithered.height,
+        algorithm_index
     ];
 
-    //input_data = floyd_steinberg(input_data, input_canvas.width, input_canvas.height, parameters);
     worker.postMessage(initial_message);
 
     worker.onmessage = function(msg) {
-        if (msg.data[1] == "DONE") {
-            input_context.putImageData(msg.data[0], 0, 0);
+        let progress_bar = document.getElementById("dither-progress-bar");
 
-            let destination_image = document.getElementById("final-downloadable-image-dithered");
-            let data_uri = input_canvas.toDataURL("image/png;base64");
-            destination_image.src = data_uri;
+        if (msg.data[0] == "DONE") {
+            progress_bar.style.backgroundColor = "var(--bs-success)";
+            progress_bar.innerHTML = "Completed";
+            
+            input_context_dithered.putImageData(msg.data[1], 0, 0);
+            input_context_quantized.putImageData(msg.data[2], 0, 0);
+
+            write_to_image(input_canvas_quantized, "final-downloadable-image-quantized");
+            write_to_image(input_canvas_dithered, "final-downloadable-image-dithered");
 
             let final_dither_image = document.getElementById("final-downloadable-image-dithered");
-            final_dither_image.style.display = "";
+            final_dither_image.style.display = "";  
+            
+            let final_quantized_image = document.getElementById("final-downloadable-image-quantized");
+            final_quantized_image.style.display = "";  
 
             worker.terminate();
-        } else if (msg.data[1] == "PROGRESS") {
-            let progress_bar = document.getElementById("dither-progress-bar");
-            var progress = clamp(msg.data[0] * 100, 0, 100);
+        } else if (msg.data[0] == "PROGRESS") {
+            progress_bar = document.getElementById("dither-progress-bar");
+            var progress = clamp(msg.data[1] * 100, 0, 100);
             progress_bar.style.width = progress + "%";
             progress_bar.innerHTML = Math.round(progress) + "%";
         }  
     };    
+}
+
+function write_to_image(canvas, id) {
+    let destination_image = document.getElementById(id);
+    let data_uri_dithered = canvas.toDataURL("image/png;base64");
+    destination_image.src = data_uri_dithered;
 }
 
 export function clamp(value, min, max) {

@@ -3,10 +3,17 @@
 }
 
 .progress {
-    -moz-transition: height 0.5s ease;
-    -webkit-transition: height 0.5s ease;
-    -o-transition: height 0.5s ease;
-    transition: height 0.5s ease;
+    -moz-transition: height 1s ease;
+    -webkit-transition: height 1s ease;
+    -o-transition: height 1s ease;
+    transition: height 1s ease;
+}
+
+#dither-progress-bar {
+    -moz-transition-property: width, background-color;
+    -webkit-transition-property: width, background-color;
+    -o-transition-property: width, background-color;
+    transition-property: width, background-color;
 }
 
 .no-picture-text, .dither-not-started-text {

@@ -13,7 +13,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
         <link rel="stylesheet" href="style_bs.css">
         <script type="module" src="dither_starter.js"></script>
-        <script type="module" src="main_v1_1.js"></script>
+        <script type="module" src="main_v1_2.js"></script>
     </head>
     <body>
         <nav class="navbar navbar-expand-sm navbar-dark bg-primary bg-gradient navbar-fixed-top">
@@ -22,7 +22,7 @@
                 <div class="collapse navbar-collapse" id="portfolio-nav">
                     <ul class="navbar-nav ms-auto my-2 my-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" href="">Privacy Statement</a>
+                            <a class="nav-link" data-bs-toggle="modal" style="cursor:pointer;" data-bs-target="#privacy-staticBackdrop">Privacy Statement</a>
                         </li>
                         <li class="nav-item"> 
                             <a class="nav-link" href="https://github.com/dfrias100/dithering-web-app"><i class="bi bi-github"></i> Source Code</a>
@@ -48,6 +48,8 @@
                         <select class="form-select" id="algorithm-dropdown">
                             <option selected>Select...</option>
                             <option value="1">Floyd-Steinberg</option>
+                            <option value="2">Probabilistic Dither</option>
+                            <option value="3">Bayer Ordered Dither</option>
                         </select>
                     </div>
 
@@ -57,15 +59,34 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="dither-level-range" class="form-label">Dithering Level: </label>
-                        <label id="current-level"> 2 </label>
+                        <label for="dither-level-range" class="form-label">Quantization level: </label>
+                        <label id="dither-level-range-label"> 2 </label>
                         <input type="range" class="form-range" min="2" max="256" value="2" id="dither-level-range">
+                    </div>
+
+                    <div class="mb-3" id="noise-level-div" style="display: none;">
+                        <label for="noise-level-range" class="form-label">Noise level: </label>
+                        <label id="noise-level-range-label"> 100 </label>
+                        <input type="range" class="form-range" min="0" max="100" value="100" id="noise-level-range">
+                    </div>
+
+                    <div class="mb-3" id="bayer-size-div" style="display: none;">
+                        <label for="bayer-size-range" class="form-label">Bayer Size: </label>
+                        <label id="bayer-size-range-label"> 2 </label>
+                        <input type="range" class="form-range" min="1" max="7" value="1" step="1" id="bayer-size-range">
                     </div>
 
                     <div class="mb-3">
                         <input class="form-check-input" type="checkbox" value="" id="grayscale-check">
                         <label class="form-check-label" for="grayscale-check">
                             Make grayscale
+                        </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <input class="form-check-input" type="checkbox" value="" id="linearization-check">
+                        <label class="form-check-label" for="linearization-check">
+                            Perform linearization
                         </label>
                     </div>
 
@@ -108,8 +129,8 @@
                         <div class="tab-pane fade" id="quantized-no-dithering" role="tabpanel">
                             <p class="no-picture-text">No picture uploaded yet.</p>
                             <p class="dither-not-started-text" style="display: none;">Click "Dither" to view this panel.</p>
-                            <canvas class="" class="mt-4" id="quantise-image" style="display: none;"></canvas>
-                            <img class="mt-4 image-panels" id="final-downloadable-image-quantize" src=""></img>
+                            <canvas class="" class="mt-4" id="quantized-image" style="display: none;"></canvas>
+                            <img class="mt-4 image-panels" id="final-downloadable-image-quantized" src=""></img>
                         </div>
                         <div class="tab-pane fade" id="dithered" role="tabpanel">
                             <p class="no-picture-text">No picture uploaded yet.</p>    
@@ -121,6 +142,24 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="privacy-staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="staticBackdropLabel">Privacy Statement</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  All computation done to the images is done on the client side.
+                  None of the files that are loaded into the application are stored on any server and no information of the client is sent anywhere, they are stored in your browser's storage. 
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
     </body>
