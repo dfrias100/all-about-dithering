@@ -17,7 +17,13 @@ export function dither(event) {
     var initial_message = [
         input_data_dithered,
         input_data_quantized,
-        [parameters.num_shades, parameters.grayscale, parameters.noise_level, parameters.bayer_size],
+        [
+            parameters.num_shades, 
+            parameters.grayscale, 
+            parameters.noise_level, 
+            parameters.bayer_size,
+            parameters.linearization
+        ],
         input_canvas_dithered.width,
         input_canvas_dithered.height,
         algorithm_index

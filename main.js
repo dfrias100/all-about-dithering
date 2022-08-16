@@ -8,6 +8,7 @@ let noise_level_label = document.getElementById("noise-level-range-label");
 let dither_level_label = document.getElementById("dither-level-range-label");
 let bayer_size_label = document.getElementById("bayer-size-range-label");
 let grayscale_check = document.getElementById("grayscale-check");
+let linearization_check = document.getElementById("linearization-check");
 
 var user_image;
 var algorithm_dropdown = document.getElementById("algorithm-dropdown");
@@ -29,6 +30,7 @@ input_shades.value = 2;
 input_noise.value = 0;
 input_bayer.value = 1;
 grayscale_check.checked = false;
+linearization_check.checked = false;
 noise_level_label.innerHTML = " " + input_noise.value + " "; 
 dither_level_label.innerHTML = " " + input_shades.value + " "; 
 bayer_size_label.innerHTML = " " + Math.pow(2, input_bayer.value) + " "; 
@@ -56,6 +58,7 @@ dither_button.myParam = {
     canvas_quantized: null, 
     canvas_dithered: null, 
     grayscale: false, 
+    linearization: false,
     num_shades: input_shades.value, 
     noise_level: input_noise.value,
     bayer_size: input_bayer.value,
@@ -84,8 +87,9 @@ function before_dither(event) {
 
     dither_button.myParam.canvas_dithered = image_canvas_dithered;
     dither_button.myParam.canvas_quantized = image_canvas_quantized;
-    
+
     dither_button.myParam.grayscale = document.getElementById("grayscale-check").checked;
+    dither_button.myParam.linearization = document.getElementById("linearization-check").checked;
     dither_button.myParam.num_shades = clamp(document.getElementById("dither-level-range").value, 2, 256);
     dither_button.myParam.noise_level = clamp(document.getElementById("noise-level-range").value, 0, 100);
     dither_button.myParam.bayer_size = clamp(Math.pow(2, document.getElementById("bayer-size-range").value), 2, 128);

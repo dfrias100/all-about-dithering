@@ -13,6 +13,7 @@ self.onmessage = function(message) {
         grayscale: parameters[1],
         noise_level: parameters[2],
         bayer_size: parameters[3],
+        linearization: parameters[4]
     }
 
     input_data_quantized = naive_quantize(input_data_quantized, width, height, parameters);
@@ -222,11 +223,13 @@ function floyd_steinberg(image_data_object, width, height, other_parameters) {
     }
     console.log("3d stage done");
 
-    /*multi_array_data.map(
-        function(row) {
-            return row.map(srgb_to_linear);
-        }
-    );*/
+    if (other_parameters.linearization) {
+        multi_array_data.map(
+            function(row) {
+                return row.map(srgb_to_linear);
+            }
+        );
+    }
 
     work_done = width * height;
     work_iteration = 0;
@@ -280,11 +283,14 @@ function floyd_steinberg(image_data_object, width, height, other_parameters) {
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
-    /*multi_array_data.map(
-        function(row) {
-            return row.map(linear_to_srgb);
-        }
-    );*/
+    
+    if (other_parameters.linearization) {
+        multi_array_data.map(
+            function(row) {
+                return row.map(linear_to_srgb);
+            }
+        );
+    }
 
     console.log("writing");
     // When finished, place the data back into the image data object and return it
@@ -342,11 +348,13 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
     }
     console.log("3d stage done");
 
-    /*multi_array_data.map(
-        function(row) {
-            return row.map(srgb_to_linear);
-        }
-    );*/
+    if (other_parameters.linearization) {
+        multi_array_data.map(
+            function(row) {
+                return row.map(srgb_to_linear);
+            }
+        );
+    }
 
     work_done = width * height;
     work_iteration = 0;
@@ -357,14 +365,13 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
         for (var i = 0; i < width; i++) {
             var old_color = multi_array_data[j][i];
             
-            let offset = (Math.random() * 255.0 - 127.5) * other_parameters.noise_levels / 100.0;
+            let offset = (Math.random() * 255.0 - 127.5) * other_parameters.noise_level / 100.0;
 
-            var new_color = {
-                red:   (old_color.red   + offset) > 127.5 ? 255 : 0,
-                green: (old_color.green + offset) > 127.5 ? 255 : 0,
-                blue:  (old_color.blue  + offset) > 127.5 ? 255 : 0,
-                alpha:  old_color.alpha
-            }
+            old_color.red += offset;
+            old_color.green += offset;
+            old_color.blue += offset;
+
+            var new_color = quantize(old_color, other_parameters.num_shades);
 
             multi_array_data[j][i] = new_color;
 
@@ -379,11 +386,13 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
-    /*multi_array_data.map(
-        function(row) {
-            return row.map(linear_to_srgb);
-        }
-    );*/
+    if (other_parameters.linearization) {
+        multi_array_data.map(
+            function(row) {
+                return row.map(linear_to_srgb);
+            }
+        );
+    }
 
     console.log("writing");
     // When finished, place the data back into the image data object and return it
@@ -445,11 +454,13 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
     }
     console.log("3d stage done");
 
-    /*multi_array_data.map(
-        function(row) {
-            return row.map(srgb_to_linear);
-        }
-    );*/
+    if (other_parameters.linearization) {
+        multi_array_data.map(
+            function(row) {
+                return row.map(srgb_to_linear);
+            }
+        );
+    }
 
     work_done = width * height;
     work_iteration = 0;
@@ -462,10 +473,6 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
             var old_color = multi_array_data[j][i];
-
-            /*old_color.red /= 255.0;
-            old_color.green /= 255.0;
-            old_color.blue /= 255.0;*/
 
             var threshold = bayer[j % size][i % size] / (size * size);
             threshold = r * (threshold - 0.5);
@@ -491,11 +498,13 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
-    /*multi_array_data.map(
-        function(row) {
-            return row.map(linear_to_srgb);
-        }
-    );*/
+    if (other_parameters.linearization) {
+        multi_array_data.map(
+            function(row) {
+                return row.map(linear_to_srgb);
+            }
+        );
+    }
 
     console.log("writing");
     // When finished, place the data back into the image data object and return it
