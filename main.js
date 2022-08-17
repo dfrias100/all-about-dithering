@@ -1,4 +1,4 @@
-import { dither, clamp } from "./dither_starter.js";
+import { dither, clamp } from "./dither_starter.js?n=2";
 
 let input_file = document.getElementById("formFile");
 let input_shades = document.getElementById("dither-level-range");
