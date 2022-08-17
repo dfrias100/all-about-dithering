@@ -11,11 +11,13 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Albert+Sans&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-        <link rel="stylesheet" href="style_bs.css">
-        <script type="module" src="dither_starter.js?n=1"></script>
-        <script type="module" src="main.js?n=1"></script>
+        <link rel="stylesheet" href="style.css?n=2">
+        <script type="module" src="dither_starter.js?n=2"></script>
+        <script type="module" src="main.js?n=2"></script>
     </head>
     <body>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+
         <nav class="navbar navbar-expand-sm navbar-dark bg-primary bg-gradient navbar-fixed-top">
             <div class="container-fluid">
                 <div class="navbar-brand" href="#">All About Dithering</div>
@@ -32,7 +34,6 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portfolio-nav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
             </div>
         </nav>
 
@@ -47,9 +48,12 @@
                         <label for="algorithm-dropdown" class="form-label">Dithering algorithm to use</label>
                         <select class="form-select" id="algorithm-dropdown">
                             <option selected>Select...</option>
-                            <option value="1">Floyd-Steinberg</option>
-                            <option value="2">Probabilistic Dither</option>
-                            <option value="3">Bayer Ordered Dither</option>
+                            <option value="1">Floyd-Steinberg Dither</option>
+                            <option value="2">Jarvis-Judice-Ninke Dither</option>
+                            <option value="3">Atkinson Dither</option>
+                            <option value="4">Simple Error Diffusion Dither</option>
+                            <option value="5">White Noise Dither</option>
+                            <option value="6">Bayer Ordered Dither</option>
                         </select>
                     </div>
 
@@ -58,25 +62,25 @@
                         <input class="form-control" type="file" id="formFile" accept="image/png, image/jpeg, image/bmp, image/tiff">
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="dither-level-range" class="form-label">Quantization level: </label>
+                    <div class="mb-3 collapse multi-collapse show" id="dither-range-div">
+                        <label id="dither-level-range-label-non-numeric" for="dither-level-range" class="form-label">Quantization level: </label>
                         <label id="dither-level-range-label"> 2 </label>
                         <input type="range" class="form-range" min="2" max="256" value="2" id="dither-level-range">
                     </div>
 
-                    <div class="mb-3" id="noise-level-div" style="display: none;">
+                    <div class="mb-3 collapse" id="noise-level-div">
                         <label for="noise-level-range" class="form-label">Noise level: </label>
                         <label id="noise-level-range-label"> 100 </label>
                         <input type="range" class="form-range" min="0" max="100" value="100" id="noise-level-range">
                     </div>
 
-                    <div class="mb-3" id="bayer-size-div" style="display: none;">
+                    <div class="mb-3 collapse" id="bayer-size-div">
                         <label for="bayer-size-range" class="form-label">Bayer Size: </label>
                         <label id="bayer-size-range-label"> 2 </label>
                         <input type="range" class="form-range" min="1" max="7" value="1" step="1" id="bayer-size-range">
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 collapse multi-collapse show" id="grayscale-check-div">
                         <input class="form-check-input" type="checkbox" value="" id="grayscale-check">
                         <label class="form-check-label" for="grayscale-check">
                             Make grayscale
@@ -88,6 +92,37 @@
                         <label class="form-check-label" for="linearization-check">
                             Perform linearization
                         </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <input class="form-check-input" data-bs-toggle="collapse" data-bs-target=".multi-collapse" type="checkbox" value="" id="euclidean-check">
+                        <label class="form-check-label" for="euclidean-check">
+                            Use euclidean quantize function
+                        </label>
+                    </div>
+
+                    <div class="collapse multi-collapse mb-3" id="color-picker-div">
+                        <div class="card">
+                            <div class = "card-header">
+                                <h2 style="font-size: 1.2em;"> Add Colors </h2>
+                            </div>
+                            <div class="card-body">
+                                You may have as many as 24 colors, but not less than 2.
+                                </br>
+                                <div class="my-1 btn-group" role="group">
+                                    <button type="button" id="add-color-button" class="btn btn-outline-primary">Add</button>
+                                    <button type="button" id="remove-color-button" class="btn btn-outline-primary">Remove</button>
+                                </div>
+                                <div class="my-1 row" id="color-holder-div">
+                                    <div class="col-auto">
+                                        <input type="color" class="form-control form-control-color" value="#000000" title="Choose your color">
+                                    </div>
+                                    <div class="col-auto">
+                                        <input type="color" class="form-control form-control-color" value="#FFFFFF" title="Choose your color">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-3"></div>
@@ -160,7 +195,5 @@
               </div>
             </div>
           </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
     </body>
 </html>

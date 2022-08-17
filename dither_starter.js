@@ -1,5 +1,5 @@
 export function dither(event) {
-    const worker = new Worker("dither_worker.js?n=1");
+    const worker = new Worker("dither_worker.js?n=2");
 
     var input_canvas_dithered = event.target.myParam.canvas_dithered;
     var input_canvas_quantized = event.target.myParam.canvas_quantized;
@@ -22,7 +22,9 @@ export function dither(event) {
             parameters.grayscale, 
             parameters.noise_level, 
             parameters.bayer_size,
-            parameters.linearization
+            parameters.linearization,
+            parameters.color_palette,
+            parameters.euclidean
         ],
         input_canvas_dithered.width,
         input_canvas_dithered.height,

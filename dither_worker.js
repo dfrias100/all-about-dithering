@@ -1,4 +1,57 @@
-var functions = [ null, floyd_steinberg, probabilistic_dither, bayer_dither ];
+var functions = [ 
+    null, 
+    matrix_error_diffusion,
+    matrix_error_diffusion, 
+    matrix_error_diffusion, 
+    matrix_error_diffusion, 
+    probabilistic_dither, 
+    bayer_dither
+];
+
+var error_offsets = [
+    // Floyd-Steinberg
+    [
+        { x:  1, y: 0, constant: 7.0 / 16.0},
+        { x:  1, y: 1, constant: 1.0 / 16.0},
+        { x: -1, y: 1, constant: 3.0 / 16.0},
+        { x:  0, y: 1, constant: 5.0 / 16.0}
+    ],
+    // Jarvis-Judice-Ninke
+    [
+        { x:   1, y: 0, constant: 7.0 / 48.0},
+        { x:   2, y: 0, constant: 5.0 / 48.0},
+
+        { x:  -2, y: 1, constant: 3.0 / 48.0},
+        { x:  -1, y: 1, constant: 5.0 / 48.0},
+        { x:   0, y: 1, constant: 7.0 / 48.0},
+        { x:   1, y: 1, constant: 5.0 / 48.0},
+        { x:   2, y: 1, constant: 3.0 / 48.0},
+
+        { x:  -2, y: 2, constant: 1.0 / 48.0},
+        { x:  -1, y: 2, constant: 3.0 / 48.0},
+        { x:   0, y: 2, constant: 5.0 / 48.0},
+        { x:   1, y: 2, constant: 3.0 / 48.0},
+        { x:   2, y: 2, constant: 1.0 / 48.0},
+    ],
+    // Bill Atkinson
+    [
+        { x:   1, y: 0, constant: 1.0 / 8.0},
+        { x:   2, y: 0, constant: 1.0 / 8.0},
+
+        { x:  -1, y: 1, constant: 1.0 / 8.0},
+        { x:   0, y: 1, constant: 1.0 / 8.0},
+        { x:   1, y: 1, constant: 1.0 / 8.0},
+
+        { x:   0, y: 2, constant: 1.0 / 8.0},
+    ],
+    // Simple Error Diffusion
+    [
+        { x:   1, y: 0, constant: 1.0 / 2.0},
+        { x:   0, y: 1, constant: 1.0 / 2.0},
+    ]
+];
+
+var quantization_function = quantize_normal;
 
 self.onmessage = function(message) {
     var input_data_dithered = message.data[0];
@@ -13,8 +66,23 @@ self.onmessage = function(message) {
         grayscale: parameters[1],
         noise_level: parameters[2],
         bayer_size: parameters[3],
-        linearization: parameters[4]
+        linearization: parameters[4],
+        error_offset: message.data[5] - 1,
+        color_palette: parameters[5],
+        euclidean: parameters[6]
+    };
+
+    if (parameters.euclidean) {
+        parameters.color_palette = parameters.color_palette.map(function(color) {
+            return hexToRgb(color);
+        });
+        parameters.grayscale = false;
+        quantization_function = quantize_euclidean;
+    } else {
+        quantization_function = quantize_normal;
     }
+
+    console.log(parameters.color_palette);
 
     input_data_quantized = naive_quantize(input_data_quantized, width, height, parameters);
     input_data_dithered = dither_function(input_data_dithered, width, height, parameters);
@@ -23,6 +91,15 @@ self.onmessage = function(message) {
 
     self.postMessage(finished_message);
 }
+
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
 
 function srgb_to_linear(color) {
     color.red /= 255.0;
@@ -107,7 +184,7 @@ function color_clamp(color) {
     return color;
 }
 
-function generate_bayer_matrix(x, y, size, value, stepping_size, matrix = null) {
+function generate_bayer_matrix(x, y, size, value, stepping_size, matrix = null, offset = [0, 1, 2, 3]) {
     if (matrix === null) {
         matrix = new Array(size);
         for (var i = 0; i < size; i++) {
@@ -128,21 +205,57 @@ function generate_bayer_matrix(x, y, size, value, stepping_size, matrix = null) 
 
     var half_size = size / 2;
 
-    generate_bayer_matrix(x,             y,             half_size, value + stepping_size * 0, 4 * stepping_size, matrix);
-    generate_bayer_matrix(x + half_size, y + half_size, half_size, value + stepping_size * 1, 4 * stepping_size, matrix);
-    generate_bayer_matrix(x + half_size, y            , half_size, value + stepping_size * 2, 4 * stepping_size, matrix);
-    generate_bayer_matrix(x,             y + half_size, half_size, value + stepping_size * 3, 4 * stepping_size, matrix);
+    generate_bayer_matrix(x,             y,             half_size, value + stepping_size * offset[0], 4 * stepping_size, matrix);
+    generate_bayer_matrix(x + half_size, y + half_size, half_size, value + stepping_size * offset[1], 4 * stepping_size, matrix);
+    generate_bayer_matrix(x + half_size, y            , half_size, value + stepping_size * offset[2], 4 * stepping_size, matrix);
+    generate_bayer_matrix(x,             y + half_size, half_size, value + stepping_size * offset[3], 4 * stepping_size, matrix);
 
     return matrix;
 }
 
-function quantize(color, num_shades) {
+function quantize_normal(color, parameters) {
     var quantized_color = { red: 0, green: 0, blue: 0, alpha: color.alpha };
+    let num_shades = parameters.num_shades;
     var factor = 255.0 / (num_shades - 1);
     quantized_color.red = Math.round(color.red / factor) * factor;
     quantized_color.green = Math.round(color.green / factor) * factor;
     quantized_color.blue = Math.round(color.blue / factor) * factor;
     return quantized_color;
+}
+
+function euclidean_distance(vector_one, vector_two) {
+    var sum = 0;
+    for (var i = 0; i < vector_one.length; i++) {
+        sum += Math.pow(vector_one[i] - vector_two[i], 2);
+    }
+    return sum;
+}
+
+function quantize_euclidean(color, parameters) {
+    let color_palette = parameters.color_palette;
+
+    color_palette = color_palette.map(function(color) {
+        return [color.r, color.g, color.b];
+    });
+
+    var alpha = color.alpha;
+
+    color = [color.red, color.green, color.blue];
+
+    let closest = color_palette[0];
+    let min_dist = euclidean_distance(color_palette[0], color);
+
+    for (let i = 1; i < color_palette.length; i++) {
+        let dist = euclidean_distance(color_palette[i], color);
+        if (dist < min_dist) {
+            min_dist = dist;
+            closest = color_palette[i];
+        }
+    }
+
+    closest = { red: closest[0], green: closest[1], blue: closest[2], alpha: alpha };
+
+    return closest;
 }
 
 function check_progress_and_send(work_done, work_iteration, total_work, send_threshold) {
@@ -166,7 +279,7 @@ function naive_quantize(input_data, width, height, parameters) {
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
             var color = get_color(i, j, width, input_data.data);
-            var quantized_color = quantize(color, parameters.num_shades);
+            var quantized_color = quantization_function(color, parameters);
             input_data.data[j * width * 4 + i * 4] = quantized_color.red;
             input_data.data[j * width * 4 + i * 4 + 1] = quantized_color.green;
             input_data.data[j * width * 4 + i * 4 + 2] = quantized_color.blue;
@@ -176,18 +289,12 @@ function naive_quantize(input_data, width, height, parameters) {
     return input_data;
 }
 
-function floyd_steinberg(image_data_object, width, height, other_parameters) {
+function matrix_error_diffusion(image_data_object, width, height, other_parameters) {
     var total_work = 2 * width * height;
     var work_done = 0;
     var work_iteration = 0;
     var work_fraction = total_work / 20;
     console.log(work_fraction);
-
-    // Define constants for the error diffusion
-    var seven_sixteenths = 7.0 / 16.0;
-    var three_sixteenths = 3.0 / 16.0;
-    var one_sixteenth    = 1.0 / 16.0;
-    var five_sixteenths  = 5.0 / 16.0;
 
     // We will make the array 3D to make the code easier to read
     var multi_array_data = [];
@@ -235,12 +342,15 @@ function floyd_steinberg(image_data_object, width, height, other_parameters) {
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
+    var error_diffusion_offsets = error_offsets[other_parameters.error_offset];
+    console.log(error_diffusion_offsets);
+
     console.log("fs start");
     // Floyd-Steinberg dithering algorithm
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
             var old_color = multi_array_data[j][i];
-            var new_color = quantize(old_color, other_parameters.num_shades);
+            var new_color = quantization_function(old_color, other_parameters);
 
             multi_array_data[j][i] = new_color;
 
@@ -250,26 +360,14 @@ function floyd_steinberg(image_data_object, width, height, other_parameters) {
                 blue: old_color.blue - new_color.blue 
             };
 
-            // Ignore diffusion if the pixel is on the edge of the image
-            if ((i + 1) < width) {
-                multi_array_data[j][i + 1] = add_error(multi_array_data[j][i + 1], error, seven_sixteenths);
-                multi_array_data[j][i + 1] = color_clamp(multi_array_data[j][i + 1]);
-
-                if ((j + 1) < height) {
-                    multi_array_data[j + 1][i + 1] = add_error(multi_array_data[j + 1][i + 1], error, one_sixteenth);
-                    multi_array_data[j + 1][i + 1] = color_clamp(multi_array_data[j + 1][i + 1]);
+            for (var k = 0; k < error_diffusion_offsets.length; k++) {
+                var offset = error_diffusion_offsets[k];
+                var j_new = j + offset.y;
+                var i_new = i + offset.x;
+                if (j_new < height && i_new < width && i_new >= 0) {
+                    multi_array_data[j_new][i_new] = add_error(multi_array_data[j_new][i_new], error, offset.constant);
+                    multi_array_data[j_new][i_new] = color_clamp(multi_array_data[j_new][i_new]);
                 }
-            }
-
-            // Same reasoning as above
-            if ((j + 1) < height) {
-                if ((i - 1) >= 0) {
-                    multi_array_data[j + 1][i - 1] = add_error(multi_array_data[j + 1][i - 1], error, three_sixteenths);
-                    multi_array_data[j + 1][i - 1] = color_clamp(multi_array_data[j + 1][i - 1]);
-                }
-
-                multi_array_data[j + 1][i] = add_error(multi_array_data[j + 1][i], error, five_sixteenths);
-                multi_array_data[j + 1][i] = color_clamp(multi_array_data[j + 1][i]);
             }
 
             work_done++;
@@ -283,7 +381,6 @@ function floyd_steinberg(image_data_object, width, height, other_parameters) {
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
-    
     if (other_parameters.linearization) {
         multi_array_data.map(
             function(row) {
@@ -371,7 +468,7 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
             old_color.green += offset;
             old_color.blue += offset;
 
-            var new_color = quantize(old_color, other_parameters.num_shades);
+            var new_color = quantization_function(old_color, other_parameters);
 
             multi_array_data[j][i] = new_color;
 
@@ -466,8 +563,13 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
-    let N = Math.log2(other_parameters.num_shades);
-    let r = 255.0 / N;
+    let r;
+
+    if (other_parameters.euclidean) {
+        r = 255.0;
+    } else {
+        r = (255.0 / (other_parameters.num_shades - 1));
+    }
 
     console.log("pd start");
     for (var j = 0; j < height; j++) {
@@ -483,7 +585,7 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
 
             old_color = color_clamp(old_color);
 
-            var new_color = quantize(old_color, other_parameters.num_shades);
+            var new_color = quantization_function(old_color, other_parameters);
 
             multi_array_data[j][i] = new_color;
 
