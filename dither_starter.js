@@ -79,7 +79,7 @@ function dataURLtoFile(dataurl, filename) {
 function write_to_image(canvas, id) {
     let destination_image = document.getElementById(id);
     let data_uri_dithered = canvas.toDataURL("image/png;base64");
-    let file = dataURLtoFile(data_uri_dithered, "dithered.png");
+    let file = dataURLtoFile(data_uri_dithered, "index.png");
     destination_image.src = URL.createObjectURL(file);
 }
 
