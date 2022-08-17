@@ -62,10 +62,25 @@ export function dither(event) {
     };    
 }
 
+function dataURLtoFile(dataurl, filename) {
+    var arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+        
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    
+    return new File([u8arr], filename, {type:mime});
+}
+
 function write_to_image(canvas, id) {
     let destination_image = document.getElementById(id);
     let data_uri_dithered = canvas.toDataURL("image/png;base64");
-    destination_image.src = data_uri_dithered;
+    let file = dataURLtoFile(data_uri_dithered, "dithered.png");
+    destination_image.src = URL.createObjectURL(file);
 }
 
 export function clamp(value, min, max) {
