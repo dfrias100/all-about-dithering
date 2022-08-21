@@ -1,5 +1,5 @@
 export function dither(event) {
-    const worker = new Worker("dither_worker.js?n=2");
+    const worker = new Worker("dither_worker.js?n=3");
 
     var input_canvas_dithered = event.target.myParam.canvas_dithered;
     var input_canvas_quantized = event.target.myParam.canvas_quantized;

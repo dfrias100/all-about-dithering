@@ -31,7 +31,7 @@ var error_offsets = [
         { x:  -1, y: 2, constant: 3.0 / 48.0},
         { x:   0, y: 2, constant: 5.0 / 48.0},
         { x:   1, y: 2, constant: 3.0 / 48.0},
-        { x:   2, y: 2, constant: 1.0 / 48.0},
+        { x:   2, y: 2, constant: 1.0 / 48.0}
     ],
     // Bill Atkinson
     [
@@ -42,12 +42,12 @@ var error_offsets = [
         { x:   0, y: 1, constant: 1.0 / 8.0},
         { x:   1, y: 1, constant: 1.0 / 8.0},
 
-        { x:   0, y: 2, constant: 1.0 / 8.0},
+        { x:   0, y: 2, constant: 1.0 / 8.0}
     ],
     // Simple Error Diffusion
     [
         { x:   1, y: 0, constant: 1.0 / 2.0},
-        { x:   0, y: 1, constant: 1.0 / 2.0},
+        { x:   0, y: 1, constant: 1.0 / 2.0}
     ]
 ];
 
@@ -81,8 +81,6 @@ self.onmessage = function(message) {
     } else {
         quantization_function = quantize_normal;
     }
-
-    console.log(parameters.color_palette);
 
     input_data_quantized = naive_quantize(input_data_quantized, width, height, parameters);
     input_data_dithered = dither_function(input_data_dithered, width, height, parameters);
@@ -195,8 +193,6 @@ function generate_bayer_matrix(x, y, size, value, stepping_size, matrix = null, 
         }
     }
 
-    console.log(x, y);
-
     if (size === 1) {
         matrix[y][x] = value;
         return;
@@ -294,14 +290,12 @@ function matrix_error_diffusion(image_data_object, width, height, other_paramete
     var work_done = 0;
     var work_iteration = 0;
     var work_fraction = total_work / 20;
-    console.log(work_fraction);
 
     // We will make the array 3D to make the code easier to read
     var multi_array_data = [];
 
     // Splice() is only available on a normal array (ImageData stores a Uint8ClampedArray)
     var image_data_as_array = Array.prototype.slice.call(image_data_object.data);
-    console.log("splicing");
     
     // Make the image gray scale
     if (other_parameters.grayscale) {
@@ -328,7 +322,6 @@ function matrix_error_diffusion(image_data_object, width, height, other_paramete
         }
         multi_array_data.push(row);
     }
-    console.log("3d stage done");
 
     if (other_parameters.linearization) {
         multi_array_data.map(
@@ -343,10 +336,8 @@ function matrix_error_diffusion(image_data_object, width, height, other_paramete
     send_fixed_progress(work_done, total_work);
 
     var error_diffusion_offsets = error_offsets[other_parameters.error_offset];
-    console.log(error_diffusion_offsets);
 
-    console.log("fs start");
-    // Floyd-Steinberg dithering algorithm
+    // Error diffusion dithering algorithm
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
             var old_color = multi_array_data[j][i];
@@ -389,7 +380,6 @@ function matrix_error_diffusion(image_data_object, width, height, other_paramete
         );
     }
 
-    console.log("writing");
     // When finished, place the data back into the image data object and return it
     for (var i = 0; i < width; i++) {
         for (var j = 0; j < height; j++) {
@@ -409,23 +399,15 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
     var work_done = 0;
     var work_iteration = 0;
     var work_fraction = total_work / 20;
-    console.log(work_fraction);
 
-    // We will make the array 3D to make the code easier to read
     var multi_array_data = [];
 
-    // Splice() is only available on a normal array (ImageData stores a Uint8ClampedArray)
     var image_data_as_array = Array.prototype.slice.call(image_data_object.data);
-    console.log("splicing");
     
-    // Make the image gray scale
     if (other_parameters.grayscale) {
         image_data_as_array = make_gray_scale(image_data_as_array, width, height);
     }
 
-    // For every row, and for every 4 values, create a color structure and push
-    // the color structure into the temporary array, then store the newly formed row 
-    // in the multi_array_data array.
     for (var i = 0; i < width * height * 4; i += width * 4) {
         var row = [];
         for (var j = 0; j < width * 4; j += 4) {
@@ -443,7 +425,6 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
         }
         multi_array_data.push(row);
     }
-    console.log("3d stage done");
 
     if (other_parameters.linearization) {
         multi_array_data.map(
@@ -457,7 +438,6 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
     work_iteration = 0;
     send_fixed_progress(work_done, total_work);
 
-    console.log("pd start");
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
             var old_color = multi_array_data[j][i];
@@ -491,8 +471,6 @@ function probabilistic_dither(image_data_object, width, height, other_parameters
         );
     }
 
-    console.log("writing");
-    // When finished, place the data back into the image data object and return it
     for (var i = 0; i < width; i++) {
         for (var j = 0; j < height; j++) {
             var color = multi_array_data[j][i];
@@ -511,27 +489,18 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
     var work_done = 0;
     var work_iteration = 0;
     var work_fraction = total_work / 20;
-    console.log(work_fraction);
 
-    // We will make the array 3D to make the code easier to read
     var multi_array_data = [];
 
-    // Splice() is only available on a normal array (ImageData stores a Uint8ClampedArray)
     var image_data_as_array = Array.prototype.slice.call(image_data_object.data);
-    console.log("splicing");
     
-    // Make the image gray scale
     if (other_parameters.grayscale) {
         image_data_as_array = make_gray_scale(image_data_as_array, width, height);
     }
 
     var size = other_parameters.bayer_size;
     var bayer = generate_bayer_matrix(0, 0, size, 0, 1);
-    console.log(bayer);
 
-    // For every row, and for every 4 values, create a color structure and push
-    // the color structure into the temporary array, then store the newly formed row 
-    // in the multi_array_data array.
     for (var i = 0; i < width * height * 4; i += width * 4) {
         var row = [];
         for (var j = 0; j < width * 4; j += 4) {
@@ -549,7 +518,6 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
         }
         multi_array_data.push(row);
     }
-    console.log("3d stage done");
 
     if (other_parameters.linearization) {
         multi_array_data.map(
@@ -571,7 +539,6 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
         r = (255.0 / (other_parameters.num_shades - 1));
     }
 
-    console.log("pd start");
     for (var j = 0; j < height; j++) {
         for (var i = 0; i < width; i++) {
             var old_color = multi_array_data[j][i];
@@ -608,8 +575,6 @@ function bayer_dither(image_data_object, width, height, other_parameters) {
         );
     }
 
-    console.log("writing");
-    // When finished, place the data back into the image data object and return it
     for (var i = 0; i < width; i++) {
         for (var j = 0; j < height; j++) {
             var color = multi_array_data[j][i];
