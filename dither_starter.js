@@ -62,6 +62,8 @@ export function dither(event) {
     };    
 }
 
+// Code snippet from:
+/// https://stackoverflow.com/questions/35940290/how-to-convert-base64-string-to-javascript-file-object-like-as-from-file-input-f
 function dataURLtoFile(dataurl, filename) {
     var arr = dataurl.split(','),
         mime = arr[0].match(/:(.*?);/)[1],
